@@ -1,0 +1,30 @@
+name: Lint Codebase
+
+on: [pull_request]
+
+jobs:
+  lint-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - name: Run ESLint
+        run: cd backend && npm install && npm run lint
+
+  lint-contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - name: Run Clippy
+        run: |
+          cd contracts/shared && cargo clippy -- -D warnings
+          cd ../prize-pool && cargo clippy -- -D warnings
+          cd ../random-generator && cargo clippy -- -D warnings
+          cd ../coin-flip && cargo clippy -- -D warnings

@@ -1,0 +1,38 @@
+#!/bin/bash
+# Pre-Commit Hook for Stellarcade
+# Ensures code is formatted and linted before every commit.
+
+set -e
+
+echo "🔍 Running pre-commit checks..."
+
+# 1. Format Rust Contracts
+echo "🦀 Formatting Rust contracts..."
+if command -v cargo >/dev/null 2>&1; then
+    # Shared
+    cd contracts/shared && cargo fmt --all && cd ../..
+    # Prize Pool
+    cd contracts/prize-pool && cargo fmt --all && cd ../..
+    # Random Generator
+    cd contracts/random-generator && cargo fmt --all && cd ../..
+    # Coin Flip
+    cd contracts/coin-flip && cargo fmt --all && cd ../..
+else
+    echo "⚠️ Cargo not found, skipping Rust formatting."
+fi
+
+# 2. Format and Lint Backend
+echo "📦 Formatting and linting backend..."
+if command -v npm >/dev/null 2>&1; then
+    cd backend
+    npm run format >/dev/null 2>&1
+    npm run lint -- --fix
+    cd ..
+else
+    echo "⚠️ NPM not found, skipping backend checks."
+fi
+
+# 3. Add changed tracked files back to the commit
+git add -u
+
+echo "✅ Pre-commit checks passed!"

@@ -1,0 +1,41 @@
+name: Test Smart Contracts
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Cache Cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.toml') }}
+
+      - name: Build Contracts
+        run: |
+          cd contracts/shared && cargo build --release
+          cd ../prize-pool && cargo build --target wasm32-unknown-unknown --release
+          cd ../random-generator && cargo build --target wasm32-unknown-unknown --release
+          cd ../coin-flip && cargo build --target wasm32-unknown-unknown --release
+
+      - name: Run Tests
+        run: |
+          cd contracts/shared && cargo test
+          cd ../prize-pool && cargo test
+          cd ../random-generator && cargo test
+          cd ../coin-flip && cargo test
