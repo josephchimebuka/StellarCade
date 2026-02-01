@@ -6,40 +6,17 @@ set -e
 
 echo "🚀 Running pre-push verification (Build & Test)..."
 
-# 1. Faster Rust Verification (Parallel & Smart)
+# 1. Strict Rust Contract Verification
+echo "🦀 Running strict Rust verification (fmt, clippy, test)..."
 if command -v cargo >/dev/null 2>&1; then
-    # Change detection: only check contracts that have changed since branching/last push
-    UPSTREAM_BRANCH=${UPSTREAM_BRANCH:-origin/main}
-    CHANGED_FILES=$(git diff --name-only $UPSTREAM_BRANCH...HEAD)
-    
-    PIDS=()
-    FAILED=0
-
     for dir in contracts/shared contracts/prize-pool contracts/random-generator contracts/coin-flip; do
-        # Check if project root or this contract dir changed
-        if echo "$CHANGED_FILES" | grep -qE "^Cargo\.(toml|lock)$|^$dir/"; then
-            echo "   🦀 Checking $dir (Parallel)..."
-            (
-                cd "$dir"
-                cargo fmt --all -- --check > /dev/null 2>&1 || { echo "❌ $dir: Formatting failed"; exit 1; }
-                cargo clippy --all-targets --all-features -- -D warnings > /dev/null 2>&1 || { echo "❌ $dir: Clippy found issues"; exit 1; }
-                cargo test > /dev/null 2>&1 || { echo "❌ $dir: Tests failed"; exit 1; }
-            ) &
-            PIDS+=($!)
-        else
-            echo "   ⏩ Skipping $dir (No changes)"
-        fi
+        echo "   Checking $dir..."
+        cd "$dir"
+        cargo fmt --all -- --check
+        cargo clippy --all-targets --all-features -- -D warnings
+        cargo test
+        cd - > /dev/null
     done
-
-    # Wait for all parallel checks to finish
-    for pid in "${PIDS[@]}"; do
-        wait "$pid" || FAILED=$((FAILED + 1))
-    done
-
-    if [ $FAILED -ne 0 ]; then
-        echo "❌ $FAILED Rust contract(s) failed verification! Push aborted."
-        exit 1
-    fi
 else
     echo "⚠️ Cargo not found, skipping Rust verification."
 fi
