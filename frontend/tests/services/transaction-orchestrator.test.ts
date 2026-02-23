@@ -1,5 +1,3 @@
-import { describe, it, expect, vi } from 'vitest';
-
 import { TransactionOrchestrator } from '../../src/services/transaction-orchestrator';
 import {
   ConfirmationStatus,
@@ -79,7 +77,7 @@ describe('TransactionOrchestrator', () => {
   });
 
   it('fails fast on precondition failure without calling submit', async () => {
-    const submit = vi.fn(async () => ({ txHash: 'never', data: null }));
+    const submit = jest.fn(async () => ({ txHash: 'never', data: null }));
 
     const orchestrator = new TransactionOrchestrator({
       sleep: async () => {},
@@ -165,7 +163,7 @@ describe('TransactionOrchestrator', () => {
   it('prevents duplicate in-flight execution', async () => {
     let resolveSubmit: ((v: { txHash: string; data: null }) => void) | null = null;
 
-    const submit = vi.fn(
+    const submit = jest.fn(
       () =>
         new Promise<{ txHash: string; data: null }>((resolve) => {
           resolveSubmit = resolve;

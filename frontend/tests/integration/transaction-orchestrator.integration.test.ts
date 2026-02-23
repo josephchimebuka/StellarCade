@@ -1,6 +1,6 @@
-// @vitest-environment happy-dom
-
-import { describe, it, expect } from 'vitest';
+/**
+ * @jest-environment jsdom
+ */
 import { renderHook, act } from '@testing-library/react';
 
 import { useTransactionOrchestrator } from '../../src/hooks/useTransactionOrchestrator';

@@ -211,7 +211,7 @@ export class TransactionOrchestrator {
           data: submission.data,
         };
       } catch (err) {
-        const appError = toAppError(err, undefined, {
+        const appError = this.normalizeError(err, {
           correlationId,
           operation: request.operation,
           phase: TransactionPhase.SUBMITTING,
@@ -282,7 +282,7 @@ export class TransactionOrchestrator {
           confirmations: confirmation.confirmations ?? this.state.confirmations,
         });
       } catch (err) {
-        const appError = toAppError(err, undefined, {
+        const appError = this.normalizeError(err, {
           correlationId,
           operation: request.operation,
           phase: TransactionPhase.CONFIRMING,
@@ -392,6 +392,31 @@ export class TransactionOrchestrator {
   private computeBackoffMs(policy: RetryPolicy, attempt: number): number {
     const exponent = Math.max(0, attempt - 1);
     return Math.round(policy.initialBackoffMs * Math.pow(policy.backoffMultiplier, exponent));
+  }
+
+  private normalizeError(err: unknown, context: Record<string, unknown>): AppError {
+    if (this.isAppError(err)) {
+      return {
+        ...err,
+        context: {
+          ...(err.context ?? {}),
+          ...context,
+        },
+      };
+    }
+
+    return toAppError(err, undefined, context);
+  }
+
+  private isAppError(value: unknown): value is AppError {
+    return (
+      typeof value === 'object' &&
+      value !== null &&
+      'code' in value &&
+      'domain' in value &&
+      'severity' in value &&
+      'message' in value
+    );
   }
 
   private isIdleOrTerminal(): boolean {
