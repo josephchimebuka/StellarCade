@@ -5,5 +5,6 @@
  */
 
 export * from "./validation";
+export * from "./usePaginatedQuery";
 export * from "./formatters";
 export * from "./useAsyncAction";

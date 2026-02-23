@@ -5,6 +5,7 @@
  */
 
 export * from "./validation";
+export * from "./usePaginatedQuery";
 export {
   formatAmount,
   formatAddress,
