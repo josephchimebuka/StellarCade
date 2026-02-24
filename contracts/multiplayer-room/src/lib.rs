@@ -458,11 +458,11 @@ mod test {
         client.mock_all_auths().create_room(&room_id, &hash);
         client.mock_all_auths().join_room(&room_id, &player);
 
-        let dup_join = client.try_join_room(&room_id, &player);
-        assert!(dup_join.is_err());
+        let dup_join = client.mock_all_auths().try_join_room(&room_id, &player);
+        assert_eq!(dup_join, Err(Ok(Error::DuplicatePlayer)));
 
-        let dup_room = client.try_create_room(&room_id, &hash);
-        assert!(dup_room.is_err());
+        let dup_room = client.mock_all_auths().try_create_room(&room_id, &hash);
+        assert_eq!(dup_room, Err(Ok(Error::RoomAlreadyExists)));
     }
 
     #[test]
@@ -495,20 +495,29 @@ mod test {
     }
 
     #[test]
-    fn test_invalid_inputs_rejected() {
+    fn test_invalid_room_id_rejected() {
         let env = Env::default();
         let (client, _, _) = setup(&env);
 
-        let zero_hash = BytesN::from_array(&env, &[0u8; 32]);
-        let invalid_room_result = client.try_create_room(&0u64, &zero_hash);
-        assert!(invalid_room_result.is_err());
-
-        let room_id = 100u64;
         let valid_hash = BytesN::from_array(&env, &[1u8; 32]);
-        client.mock_all_auths().create_room(&room_id, &valid_hash);
+        let invalid_room_result = client.mock_all_auths().try_create_room(&0u64, &valid_hash);
+        assert_eq!(invalid_room_result, Err(Ok(Error::InvalidRoomId)));
 
         let bad_join = client.try_join_room(&0u64, &Address::generate(&env));
-        assert!(bad_join.is_err());
+        assert_eq!(bad_join, Err(Ok(Error::InvalidRoomId)));
+    }
+
+    #[test]
+    fn test_invalid_config_hash_rejected() {
+        let env = Env::default();
+        let (client, _, _) = setup(&env);
+
+        let room_id = 100u64;
+        let zero_hash = BytesN::from_array(&env, &[0u8; 32]);
+        let invalid_hash_result = client
+            .mock_all_auths()
+            .try_create_room(&room_id, &zero_hash);
+        assert_eq!(invalid_hash_result, Err(Ok(Error::InvalidConfigHash)));
     }
 
     #[test]
