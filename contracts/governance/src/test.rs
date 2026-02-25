@@ -24,8 +24,6 @@ fn hash(env: &Env, data: &[u8]) -> BytesN<32> {
 struct Setup<'a> {
     gov_client: GovernanceClient<'a>,
     admin: Address,
-    token_addr: Address,
-    token_sac: StellarAssetClient<'a>,
     voter1: Address,
     voter2: Address,
 }
@@ -53,8 +51,6 @@ fn setup(env: &Env) -> Setup<'_> {
     Setup {
         gov_client,
         admin,
-        token_addr,
-        token_sac,
         voter1,
         voter2,
     }

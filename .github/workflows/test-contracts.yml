@@ -32,6 +32,7 @@ jobs:
           cd ../prize-pool && cargo build --target wasm32-unknown-unknown --release
           cd ../random-generator && cargo build --target wasm32-unknown-unknown --release
           cd ../coin-flip && cargo build --target wasm32-unknown-unknown --release
+          cd ../multiplayer-room && cargo build --target wasm32-unknown-unknown --release
           cd ../pattern-puzzle && cargo build --target wasm32-unknown-unknown --release
           cd ../emergency-pause && cargo build --target wasm32-unknown-unknown --release
           cd ../governance && cargo build --target wasm32-unknown-unknown --release
@@ -42,6 +43,7 @@ jobs:
           cd ../prize-pool && cargo test
           cd ../random-generator && cargo test
           cd ../coin-flip && cargo test
+          cd ../multiplayer-room && cargo test
           cd ../pattern-puzzle && cargo test
           cd ../emergency-pause && cargo test
           cd ../governance && cargo test
