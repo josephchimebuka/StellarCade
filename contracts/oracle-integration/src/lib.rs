@@ -70,6 +70,29 @@ pub enum Error {
     AlreadyFulfilled = 5,
     InvalidInput = 6,
     OracleNotWhitelisted = 7,
+    Overflow = 8,
+}
+
+//
+// ─────────────────────────────────────────────
+// TTL CONFIG
+// ─────────────────────────────────────────────
+//
+
+const TTL_RENEW_WINDOW: u32 = 1_000;
+
+fn renew_persistent_ttl(env: &Env, key: &DataKey) -> Result<(), Error> {
+    let max_ttl = env.storage().max_ttl();
+
+    let threshold = max_ttl
+        .checked_sub(TTL_RENEW_WINDOW)
+        .ok_or(Error::Overflow)?;
+
+    env.storage()
+        .persistent()
+        .extend_ttl(key, threshold, max_ttl);
+
+    Ok(())
 }
 
 //
@@ -136,12 +159,7 @@ impl OracleIntegration {
         };
 
         env.storage().persistent().set(&key, &request);
-
-        // Extend TTL
-        let max_ttl = env.storage().max_ttl();
-        env.storage()
-            .persistent()
-            .extend_ttl(&key, max_ttl - 1000, max_ttl);
+        renew_persistent_ttl(&env, &key)?;
 
         RequestCreated {
             request_id,
@@ -194,21 +212,12 @@ impl OracleIntegration {
         request.payload = payload.clone();
 
         env.storage().persistent().set(&req_key, &request);
-
-        // Extend TTL for request
-        let max_ttl = env.storage().max_ttl();
-        env.storage()
-            .persistent()
-            .extend_ttl(&req_key, max_ttl - 1000, max_ttl);
+        renew_persistent_ttl(&env, &req_key)?;
 
         let latest_key = DataKey::Latest(request.feed_id.clone());
 
         env.storage().persistent().set(&latest_key, &payload);
-
-        // Extend TTL for latest
-        env.storage()
-            .persistent()
-            .extend_ttl(&latest_key, max_ttl - 1000, max_ttl);
+        renew_persistent_ttl(&env, &latest_key)?;
 
         let feed_id = request.feed_id.clone();
 
@@ -228,10 +237,7 @@ impl OracleIntegration {
         let result = env.storage().persistent().get(&key);
 
         if result.is_some() {
-            let max_ttl = env.storage().max_ttl();
-            env.storage()
-                .persistent()
-                .extend_ttl(&key, max_ttl - 1000, max_ttl);
+            renew_persistent_ttl(&env, &key).ok();
         }
 
         result
@@ -246,10 +252,7 @@ impl OracleIntegration {
         let result = env.storage().persistent().get(&key);
 
         if result.is_some() {
-            let max_ttl = env.storage().max_ttl();
-            env.storage()
-                .persistent()
-                .extend_ttl(&key, max_ttl - 1000, max_ttl);
+            renew_persistent_ttl(&env, &key).ok();
         }
 
         result
