@@ -394,7 +394,7 @@ mod test {
     // ------------------------------------------------------------------
 
     /// Register contract + init. Returns (client, admin, oracle, game_contract).
-    fn setup(env: &Env) -> (RandomGeneratorClient, Address, Address, Address) {
+    fn setup(env: &Env) -> (RandomGeneratorClient<'_>, Address, Address, Address) {
         let admin = Address::generate(env);
         let oracle = Address::generate(env);
         let game = Address::generate(env);

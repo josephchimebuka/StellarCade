@@ -475,7 +475,7 @@ mod test {
     fn setup(
         env: &Env,
     ) -> (
-        PrizePoolClient,
+        PrizePoolClient<'_>,
         Address, // admin
         Address, // funder
         Address, // token address

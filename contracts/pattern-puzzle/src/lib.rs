@@ -558,7 +558,7 @@ mod test {
     }
 
     /// Register the contract and run `init`. Returns (client, admin, prize_pool, balance).
-    fn setup(env: &Env) -> (PatternPuzzleClient, Address, Address, Address) {
+    fn setup(env: &Env) -> (PatternPuzzleClient<'_>, Address, Address, Address) {
         let contract_id = env.register(PatternPuzzle, ());
         let client = PatternPuzzleClient::new(env, &contract_id);
         let admin = Address::generate(env);
